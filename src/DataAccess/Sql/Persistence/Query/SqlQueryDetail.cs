@@ -1,27 +1,27 @@
-﻿namespace VP.Core.DataAccess.Sql
+﻿namespace VP.Core.DataAccess.Sql.Persistence.Query
 {
     using System;
     using System.Data;
     using System.Data.SqlClient;
     using VP.Core.DataAccess.Sql.Enums;
 
-    public class SqlCommandDetail
+    class SqlQueryDetail
     {
         #region Public Getters-Setters
         /// <summary>
-        /// The Command - Create, Delete, and Update.
+        /// The Query - Read.
         /// </summary>
-        public Command Command { get; set; }
+        public Query Query { get; set; }
 
         /// <summary>
-        /// The command text that modifies the DB state.
+        /// The command text that queries the DB state.
         /// 
-        /// NOTE: Do not pass queries/stored-procedures that read data.
+        /// NOTE: Queries/stored-procedures that only read data.
         /// </summary>
         public string CommandText { get; set; }
 
         /// <summary>
-        /// The command type. <see cref="CommandType"/>
+        /// The command type. <see cref="System.Data.CommandType"/>
         /// </summary>
         public CommandType CommandType { get; set; }
 

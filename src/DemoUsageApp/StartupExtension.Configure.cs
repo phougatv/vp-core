@@ -39,10 +39,10 @@
         /// <param name="configuration">The configuration, <see cref="IConfiguration"/>.</param>
         /// <param name="logger">The logger, <see cref="ILogger{Startup}"/>.</param>
         /// <returns></returns>
-        private static IApplicationBuilder UseCustomComponents(this IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, ILogger<Startup> logger)
+        private static IApplicationBuilder UseCustomComponents(this IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, ILogger logger)
         {
-            logger.LogInformation("----  Configuring Custom-Components...  ----");
-            logger.LogInformation("----  Successfully configured Custom-Components.  ----");
+            logger.LogInformation("CUSTOM-COMPONENTS: Configuring...");
+            logger.LogInformation("CUSTOM-COMPONENTS: Successfully configured.");
 
             return app;
         }
@@ -53,9 +53,9 @@
         /// <param name="configuration">The configuration, <see cref="IConfiguration"/>.</param>
         /// <param name="logger">The logger, <see cref="ILogger{Startup}"/>.</param>
         /// <returns></returns>
-        private static IApplicationBuilder UseDotNetCore(this IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, ILogger<Startup> logger)
+        private static IApplicationBuilder UseDotNetCore(this IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, ILogger logger)
         {
-            logger.LogInformation("----  Configuring .NET Core...  ----");
+            logger.LogInformation(".NET CORE: Configuring...");
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
@@ -63,7 +63,7 @@
                 endpoints.MapControllers();
             });
 
-            logger.LogInformation("----  Successfully configured .NET Core.  ----");
+            logger.LogInformation(".NET CORE: Successfully configured.");
 
             return app;
         }

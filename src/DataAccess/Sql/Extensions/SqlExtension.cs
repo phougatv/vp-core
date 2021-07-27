@@ -8,7 +8,8 @@
     using System.Data;
     using VP.Core.DataAccess.Sql.Accessors;
     using VP.Core.DataAccess.Sql.Executioner;
-    using VP.Core.DataAccess.Sql.Persistence;
+    using VP.Core.DataAccess.Sql.Persistence.Query;
+    using VP.Core.DataAccess.Sql.Persistence.Command;
 
     /// <summary>
     /// SqlExtension class.
@@ -18,18 +19,23 @@
     {
         public static IServiceCollection AddSql(this IServiceCollection services, IConfiguration configuration, ILogger logger)
         {
-            logger.LogInformation("----  Adding SQL data-access...  ----");
+            logger.LogInformation("- DATA-ACCESS.SQL: Adding...");
 
             var sqlConfiguration = configuration.GetSection("Shared:DataAccess:Sql").Get<SqlConfiguration>(binderOptions => { binderOptions.BindNonPublicProperties = true; });
-            services.AddSingleton(sqlConfiguration);
+            if (null == sqlConfiguration)
+                logger.LogError($"Failed to bind section: \"Shared:DataAccess:Sql\" to {nameof(SqlConfiguration)}");
+            else
+                services.AddSingleton(sqlConfiguration);
             services.AddSingleton<IConnectionStringAccessor, ConnectionStringAccessor>();
 
             services.AddScoped<Queue<SqlCommandDetail>>();
+            services.AddScoped<Queue<SqlQueryDetail>>();
+            services.AddScoped<IDbContext, SqlDbContext>();
             services.AddScoped<IExecutioner, SqlExecutioner>();
-            services.AddScoped<IPersistent, SqlPersistent>();
+            services.AddScoped<IReader, SqlReader>();
             services.AddScoped<IDbConnection, SqlConnection>();
 
-            logger.LogInformation("----  Successfully added SQL data-access.  ----");
+            logger.LogInformation("- DATA-ACCESS.SQL: Successfully added.");
 
             return services;
         }

@@ -3,17 +3,17 @@
     using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
     using VP.Core.DataAccess.Sql.Accessors;
-    using VP.Core.DataAccess.Sql.Persistence;
+    using VP.Core.DataAccess.Sql.Persistence.Command;
 
     /// <summary>
     /// SqlExecutioner class.
     /// </summary>
-    class SqlExecutioner : IExecutioner
+    class SqlDbContext : IDbContext
     {
         #region Private Readonly Fields
-        private readonly ILogger<SqlExecutioner> _logger;
+        private readonly ILogger<SqlDbContext> _logger;
         private readonly IConnectionStringAccessor _connectionStringAccessor;
-        private readonly IPersistent _peristent;
+        private readonly IExecutioner _executioner;
         private readonly Queue<SqlCommandDetail> _orderOfExecutions;
         #endregion Private Readonly Fields
 
@@ -23,17 +23,17 @@
         /// </summary>
         /// <param name="logger">The logger, <see cref="ILogger{SqlExecutioner}"/>.</param>
         /// <param name="connectionStringAccessor">The connectionStringAccessor, <see cref="IConnectionStringAccessor"/>.</param>
-        /// <param name="sqlPeristent">The sqlPersistent, <see cref="IPersistent"/></param>
+        /// <param name="sqlPeristent">The sqlPersistent, <see cref="IExecutioner"/></param>
         /// <param name="orderOfExecutions">The orderOfExecution, <see cref="Queue{SqlCommandDetail}"/>.</param>
-        public SqlExecutioner(
-            ILogger<SqlExecutioner> logger,
+        public SqlDbContext(
+            ILogger<SqlDbContext> logger,
             IConnectionStringAccessor connectionStringAccessor,
-            IPersistent sqlPeristent,
+            IExecutioner sqlPeristent,
             Queue<SqlCommandDetail> orderOfExecutions)
         {
             _logger = logger;
             _connectionStringAccessor = connectionStringAccessor;
-            _peristent = sqlPeristent;
+            _executioner = sqlPeristent;
             _orderOfExecutions = orderOfExecutions;
         }
         #endregion Public Ctor
@@ -49,7 +49,14 @@
                 return;
             }
 
-            InternalCommit(connectionStringKey);
+            var connectionString = _connectionStringAccessor.GetConnectionString(connectionStringKey);
+            if (string.IsNullOrEmpty(connectionStringKey))
+            {
+                _logger.LogError($"{nameof(connectionStringKey)} returned null/empty. Current execution is terminated and returned to the caller.");
+                return;
+            }
+
+            _executioner.ExecuteInSingleTransaction(connectionString, _orderOfExecutions);
         }
 
         /// <summary> Enqueues the sql command detail object. </summary>
@@ -62,28 +69,8 @@
                 return;
             }
 
-            InternalExecute(sqlCommandDetail);
+            _orderOfExecutions.Enqueue(sqlCommandDetail);
         }
         #endregion Public Methods
-
-        #region Private Methods
-        /// <summary> Gets the connection-string based on the connection-string-key and performs the commit. </summary>
-        /// <param name="connectionStringKey">The connection string key.</param>
-        private void InternalCommit(string connectionStringKey)
-        {
-            var connectionString = _connectionStringAccessor.GetConnectionString(connectionStringKey);
-            if (string.IsNullOrEmpty(connectionStringKey))
-            {
-                _logger.LogError($"{nameof(connectionString)} is null/empty. Current execution is terminated and returned to the caller.");
-                return;
-            }
-
-            _peristent.CommitMultipleCommandsInSingleTransaction(connectionString, _orderOfExecutions);
-        }
-
-        /// <summary> Enqueues the sql command detail object. </summary>
-        /// <param name="sqlCommandDetail">The sql command detail, <see cref="SqlCommandDetail"/>.</param>
-        private void InternalExecute(SqlCommandDetail sqlCommandDetail) => _orderOfExecutions.Enqueue(sqlCommandDetail);
-        #endregion Private Methods
     }
 }
